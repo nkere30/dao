@@ -19,7 +19,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
     private static final String GET_BY_ID = "SELECT * FROM employee WHERE id = ?";
     private static final String GET_ALL = "SELECT * FROM employee ";
             ;
-    private static final String SAVE = "INSERT INTO employee " +
+    private static final String INSERT = "INSERT INTO employee " +
             "(id, firstname, lastname, middlename, " +
             "position, manager, hireDate, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     List<Employee> employees;
@@ -65,7 +65,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public Employee save(Employee employee) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(SAVE);
+            PreparedStatement statement = connection.prepareStatement(INSERT);
             statement.setBigDecimal(1, new BigDecimal(employee.getId()));
             statement.setString(2, employee.getFullName().getFirstName());
             statement.setString(3, employee.getFullName().getLastName());
@@ -85,7 +85,13 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
     @Override
     public void delete(Employee employee) {
-
+        try (Connection connection = ConnectionSource.instance().createConnection()) {
+            PreparedStatement statement = connection.prepareStatement(INSERT);
+            statement.setBigDecimal(1, new BigDecimal(employee.getId()));
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
     }
 
     @Override
