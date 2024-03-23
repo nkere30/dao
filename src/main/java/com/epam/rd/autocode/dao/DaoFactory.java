@@ -1,11 +1,18 @@
 package com.epam.rd.autocode.dao;
 
+import com.epam.rd.autocode.ConnectionSource;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
 public class DaoFactory {
+
+
     public EmployeeDao employeeDAO() {
-        throw new UnsupportedOperationException();
+        return new EmployeeDaoImpl();
     }
 
     public DepartmentDao departmentDAO() {
-        throw new UnsupportedOperationException();
+        return new DepartmentDaoImpl();
     }
 }
