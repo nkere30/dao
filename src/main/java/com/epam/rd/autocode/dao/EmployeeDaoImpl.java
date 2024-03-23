@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,11 +76,11 @@ public class EmployeeDaoImpl implements EmployeeDao {
             statement.setBigDecimal(8, new BigDecimal(employee.getManagerId()));
             statement.setBigDecimal(9, new BigDecimal(employee.getDepartmentId()));
             statement.execute();
+            return employee;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        return null;
     }
 
     @Override
