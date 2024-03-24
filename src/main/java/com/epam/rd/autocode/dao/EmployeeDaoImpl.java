@@ -71,23 +71,24 @@ public class EmployeeDaoImpl implements EmployeeDao {
     public Employee save(Employee employee) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statementInsert = connection.prepareStatement(INSERT);
-            PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
-            if (employees.contains(employee)) {
-                update(employee, statementUpdate);
-                for (Employee employee1 : employees) {
-                    if (employee1.getId().equals(employee.getId())) {
-                        employee1 = employee;
-                    }
-                }
-            } else {
+            if (!employeeAlreadyExists(employee)) {
                 insert(employee, statementInsert);
-                employees.add(employee);
             }
+            employees.add(employee);
             return employee;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
+    }
+
+    private boolean employeeAlreadyExists(Employee employee) {
+        for (Employee employee1 : employees) {
+            if (employee1.getId().equals(employee.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void insert(Employee employee, PreparedStatement statementInsert) throws SQLException {
@@ -102,19 +103,6 @@ public class EmployeeDaoImpl implements EmployeeDao {
         statementInsert.setBigDecimal(9, new BigDecimal(employee.getDepartmentId()));
         statementInsert.execute();
     }
-
-    private static void update(Employee employee, PreparedStatement statementUpdate) throws SQLException {
-        statementUpdate.setString(1, employee.getFullName().getFirstName());
-        statementUpdate.setString(2, employee.getFullName().getLastName());
-        statementUpdate.setString(3, employee.getFullName().getMiddleName());
-        statementUpdate.setString(4, employee.getPosition().name());
-        statementUpdate.setBigDecimal(5, new BigDecimal(employee.getManagerId()));
-        statementUpdate.setDate(6, Date.valueOf(employee.getHired()));
-        statementUpdate.setBigDecimal(7, employee.getSalary());
-        statementUpdate.setBigDecimal(8, new BigDecimal(employee.getDepartmentId()));
-        statementUpdate.setBigDecimal(9, new BigDecimal(employee.getId()));
-    }
-
 
     @Override
     public void delete(Employee employee) {
