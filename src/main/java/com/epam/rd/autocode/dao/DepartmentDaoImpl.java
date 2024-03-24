@@ -70,7 +70,6 @@ public class DepartmentDaoImpl implements DepartmentDao{
                 statementUpdate.setString(2, department.getLocation());
                 statementUpdate.setString(3, String.valueOf(department.getId()));
                 statementUpdate.execute();
-
             }
             else {
                 statementCreate.setBigDecimal(1, new BigDecimal(department.getId()));
@@ -85,9 +84,9 @@ public class DepartmentDaoImpl implements DepartmentDao{
         return department;
     }
 
-    private boolean departmentAlreadyExists(Department department) {
-        for (Department department1 : departments) {
-            if (department1.getId().equals(department.getId())) {
+    private boolean departmentAlreadyExists(Department newDepartment) {
+        for (Department department : departments) {
+            if (department.getId().equals(newDepartment.getId())) {
                 return true;
             }
         }

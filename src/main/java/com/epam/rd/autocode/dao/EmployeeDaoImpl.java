@@ -22,6 +22,11 @@ public class EmployeeDaoImpl implements EmployeeDao {
     private static final String INSERT = "INSERT INTO employee " +
             "(id, firstname, lastname, middlename, " +
             "position, manager, hireDate, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE = "UPDATE employee SET firstname = ?, lastname = ?, " +
+            " middlename = ?, position = ?, manager = ?, hiredate = ?, salary = ?, department = ? " +
+            "WHERE id = ?";
+    private static final String GET_BY_DEP = "SELECT * FROM employee WHERE department = ?";
+    private static final String GET_BY_MANAGER = "SELECT * FROM employee WHERE manager = ?";
     List<Employee> employees;
 
     public EmployeeDaoImpl() {
@@ -65,23 +70,51 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public Employee save(Employee employee) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(INSERT);
-            statement.setBigDecimal(1, new BigDecimal(employee.getId()));
-            statement.setString(2, employee.getFullName().getFirstName());
-            statement.setString(3, employee.getFullName().getLastName());
-            statement.setString(4, employee.getFullName().getMiddleName());
-            statement.setString(5, employee.getPosition().name());
-            statement.setDate(6, java.sql.Date.valueOf(employee.getHired()));
-            statement.setBigDecimal(7, employee.getSalary());
-            statement.setBigDecimal(8, new BigDecimal(employee.getManagerId()));
-            statement.setBigDecimal(9, new BigDecimal(employee.getDepartmentId()));
-            ResultSet resultSet = statement.executeQuery();
+            PreparedStatement statementInsert = connection.prepareStatement(INSERT);
+            PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
+            if (employees.contains(employee)) {
+                update(employee, statementUpdate);
+                for (Employee employee1 : employees) {
+                    if (employee1.getId().equals(employee.getId())) {
+                        employee1 = employee;
+                    }
+                }
+            } else {
+                insert(employee, statementInsert);
+                employees.add(employee);
+            }
             return employee;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
     }
+
+    private static void insert(Employee employee, PreparedStatement statementInsert) throws SQLException {
+        statementInsert.setBigDecimal(1, new BigDecimal(employee.getId()));
+        statementInsert.setString(2, employee.getFullName().getFirstName());
+        statementInsert.setString(3, employee.getFullName().getLastName());
+        statementInsert.setString(4, employee.getFullName().getMiddleName());
+        statementInsert.setString(5, employee.getPosition().name());
+        statementInsert.setBigDecimal(6, new BigDecimal(employee.getManagerId()));
+        statementInsert.setDate(7, Date.valueOf(employee.getHired()));
+        statementInsert.setBigDecimal(8, employee.getSalary());
+        statementInsert.setBigDecimal(9, new BigDecimal(employee.getDepartmentId()));
+        statementInsert.execute();
+    }
+
+    private static void update(Employee employee, PreparedStatement statementUpdate) throws SQLException {
+        statementUpdate.setString(1, employee.getFullName().getFirstName());
+        statementUpdate.setString(2, employee.getFullName().getLastName());
+        statementUpdate.setString(3, employee.getFullName().getMiddleName());
+        statementUpdate.setString(4, employee.getPosition().name());
+        statementUpdate.setBigDecimal(5, new BigDecimal(employee.getManagerId()));
+        statementUpdate.setDate(6, Date.valueOf(employee.getHired()));
+        statementUpdate.setBigDecimal(7, employee.getSalary());
+        statementUpdate.setBigDecimal(8, new BigDecimal(employee.getDepartmentId()));
+        statementUpdate.setBigDecimal(9, new BigDecimal(employee.getId()));
+    }
+
 
     @Override
     public void delete(Employee employee) {
@@ -96,12 +129,38 @@ public class EmployeeDaoImpl implements EmployeeDao {
 
     @Override
     public List<Employee> getByDepartment(Department department) {
-        return null;
+        List<Employee> employeesByDepartment = new ArrayList<>();
+        try (Connection connection = ConnectionSource.instance().createConnection()){
+            PreparedStatement statement = connection.prepareStatement(GET_BY_DEP);
+            statement.setBigDecimal(1, new BigDecimal(department.getId()));
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Employee employee = mapResultSetToEmployee(resultSet);
+                employeesByDepartment.add(employee);
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
+        return employeesByDepartment;
     }
 
     @Override
     public List<Employee> getByManager(Employee employee) {
-        return null;
+        List<Employee> employeesByManager = new ArrayList<>();
+        try (Connection connection = ConnectionSource.instance().createConnection()) {
+            PreparedStatement statement = connection.prepareStatement(GET_BY_MANAGER);
+            statement.setBigDecimal(1, new BigDecimal(employee.getId()));
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                Employee employeeByManager = mapResultSetToEmployee(resultSet);
+                employeesByManager.add(employeeByManager);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return employeesByManager;
     }
 
     private Employee mapResultSetToEmployee(ResultSet resultSet) throws SQLException {
