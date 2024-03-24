@@ -19,7 +19,7 @@ public class DepartmentDaoImpl implements DepartmentDao{
     private static final String GET_ALL = "SELECT * FROM department";
     private static final String INSERT = "INSERT INTO department (id, name, location) VALUES (?, ?, ?)";
     private static final String UPDATE = "UPDATE department SET name = ?, location = ? WHERE ID = ?";
-    private static final String DELETE = "DELETE * FROM department WHERE ID = ?";
+    private static final String DELETE = "DELETE FROM department WHERE ID = ?";
     private List<Department> departments;
 
 
@@ -50,7 +50,9 @@ public class DepartmentDaoImpl implements DepartmentDao{
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 Department department = mapResultSetToDepartments(resultSet);
-                departments.add(department);
+                if (!departmentAlreadyExists(department)) {
+                    departments.add(department);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -62,23 +64,22 @@ public class DepartmentDaoImpl implements DepartmentDao{
     @Override
     public Department save(Department department) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
-            PreparedStatement statementCreate = connection.prepareStatement(INSERT);
-            PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
             if (departmentAlreadyExists(department)) {
+                PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
                 statementUpdate.setString(1, department.getName());
                 statementUpdate.setString(2, department.getLocation());
                 statementUpdate.setString(3, String.valueOf(department.getId()));
-                statementUpdate.execute();
-            }
-            else {
-                statementCreate.setBigDecimal(1, new BigDecimal(department.getId()));
-                statementCreate.setString(2, department.getName());
-                statementCreate.setString(3, department.getLocation());
-                statementCreate.execute();
+                statementUpdate.executeUpdate();
+            } else {
+                PreparedStatement statementInsert = connection.prepareStatement(INSERT);
+                statementInsert.setBigDecimal(1, new BigDecimal(department.getId()));
+                statementInsert.setString(2, department.getName());
+                statementInsert.setString(3, department.getLocation());
+                statementInsert.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RuntimeException(e.getMessage(), e);
         }
         return department;
     }
@@ -96,11 +97,13 @@ public class DepartmentDaoImpl implements DepartmentDao{
     public void delete(Department department) {
         try (Connection connection = ConnectionSource.instance().createConnection()){
             PreparedStatement statement = connection.prepareStatement(DELETE);
-            statement.setBigDecimal(1, new BigDecimal(department.getId()));
-            statement.execute();
+            if (departmentAlreadyExists(department)) {
+                statement.setBigDecimal(1, new BigDecimal(department.getId()));
+                statement.execute();
+            }
         }catch (SQLException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RuntimeException();
         }
     }
 

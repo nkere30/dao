@@ -125,8 +125,10 @@ public class EmployeeDaoImpl implements EmployeeDao {
     public void delete(Employee employee) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statement = connection.prepareStatement(DELETE);
-            statement.setBigDecimal(1, new BigDecimal(employee.getId()));
-            statement.execute();
+            if (employeeAlreadyExists(employee)) {
+                statement.setBigDecimal(1, new BigDecimal(employee.getId()));
+                statement.execute();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
