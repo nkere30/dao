@@ -18,6 +18,7 @@ public class DepartmentDaoImpl implements DepartmentDao{
     private static final String GET_BY_ID = "SELECT * FROM department WHERE ID = ?";
     private static final String GET_ALL = "SELECT * FROM department";
     private static final String INSERT = "INSERT INTO department (id, name, location) VALUES (?, ?, ?)";
+    private static final String UPDATE = "UPDATE department SET name = ?, location = ? WHERE ID = ?";
     private static final String DELETE = "DELETE * FROM department WHERE ID = ?";
     private List<Department> departments;
 
@@ -61,16 +62,36 @@ public class DepartmentDaoImpl implements DepartmentDao{
     @Override
     public Department save(Department department) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(INSERT);
-            statement.setBigDecimal(1, new BigDecimal(department.getId()));
-            statement.setString(2, department.getName());
-            statement.setString(3, department.getLocation());
-            statement.executeUpdate();
+            PreparedStatement statementCreate = connection.prepareStatement(INSERT);
+            PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
+            boolean exists = departmentAlreadyExists(department);
+            if (exists) {
+                statementUpdate.setString(1, department.getName());
+                statementUpdate.setString(2, department.getLocation());
+                statementUpdate.setString(3, String.valueOf(department.getId()));
+                statementUpdate.execute();
+
+            }
+            else {
+                statementCreate.setBigDecimal(1, new BigDecimal(department.getId()));
+                statementCreate.setString(2, department.getName());
+                statementCreate.setString(3, department.getLocation());
+                statementCreate.execute();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
         return department;
+    }
+
+    private boolean departmentAlreadyExists(Department department) {
+        for (Department department1 : departments) {
+            if (department1.getId().equals(department.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
