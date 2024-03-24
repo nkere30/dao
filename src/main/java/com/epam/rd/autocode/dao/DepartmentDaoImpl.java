@@ -69,18 +69,12 @@ public class DepartmentDaoImpl implements DepartmentDao{
                 statementUpdate.setString(2, department.getLocation());
                 statementUpdate.setString(3, String.valueOf(department.getId()));
                 statementUpdate.execute();
-                for (Department department1 : departments) {
-                    if (department1.getId().equals(department.getId())) {
-                        department1 = department;
-                    }
-                }
             }
             else {
                 statementCreate.setBigDecimal(1, new BigDecimal(department.getId()));
                 statementCreate.setString(2, department.getName());
                 statementCreate.setString(3, department.getLocation());
                 statementCreate.execute();
-                departments.add(department);
             }
         } catch (SQLException e) {
             e.printStackTrace();

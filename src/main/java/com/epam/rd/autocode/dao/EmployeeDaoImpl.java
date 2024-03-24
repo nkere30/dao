@@ -72,22 +72,25 @@ public class EmployeeDaoImpl implements EmployeeDao {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statementInsert = connection.prepareStatement(INSERT);
             PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
-            if (employees.contains(employee)) {
+            if (employeeAlreadyExists(employee)) {
                 update(employee, statementUpdate);
-                for (Employee employee1 : employees) {
-                    if (employee1.getId().equals(employee.getId())) {
-                        employee1 = employee;
-                    }
-                }
             } else {
                 insert(employee, statementInsert);
-                employees.add(employee);
             }
             return employee;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
+    }
+
+    private boolean employeeAlreadyExists(Employee newEmployee) {
+        for (Employee employee : employees) {
+            if (employee.getId().equals(newEmployee.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void insert(Employee employee, PreparedStatement statementInsert) throws SQLException {
