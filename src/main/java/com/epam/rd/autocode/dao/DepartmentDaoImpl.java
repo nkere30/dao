@@ -63,7 +63,16 @@ public class DepartmentDaoImpl implements DepartmentDao{
     public Department save(Department department) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statementCreate = connection.prepareStatement(INSERT);
-            if (!departmentAlreadyExists(department)) {
+            PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
+            boolean exists = departmentAlreadyExists(department);
+            if (exists) {
+                statementUpdate.setString(1, department.getName());
+                statementUpdate.setString(2, department.getLocation());
+                statementUpdate.setString(3, String.valueOf(department.getId()));
+                statementUpdate.execute();
+
+            }
+            else {
                 statementCreate.setBigDecimal(1, new BigDecimal(department.getId()));
                 statementCreate.setString(2, department.getName());
                 statementCreate.setString(3, department.getLocation());
@@ -73,7 +82,6 @@ public class DepartmentDaoImpl implements DepartmentDao{
             e.printStackTrace();
             throw new RuntimeException(e);
         }
-        departments.add(department);
         return department;
     }
 
@@ -95,9 +103,6 @@ public class DepartmentDaoImpl implements DepartmentDao{
         }catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
-        }
-        if (departments.contains(department)) {
-            departments.remove(department);
         }
     }
 
