@@ -18,10 +18,10 @@ import java.util.Optional;
 public class EmployeeDaoImpl implements EmployeeDao {
     private static final String GET_BY_ID = "SELECT * FROM employee WHERE id = ?";
     private static final String GET_ALL = "SELECT * FROM employee ";
-            ;
+    private static final String DELETE = "DELETE FROM employee WHERE id = ?";
     private static final String INSERT = "INSERT INTO employee " +
             "(id, firstname, lastname, middlename, " +
-            "position, manager, hireDate, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "position, manager, hiredate, salary, department) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE = "UPDATE employee SET firstname = ?, lastname = ?, " +
             " middlename = ?, position = ?, manager = ?, hiredate = ?, salary = ?, department = ? " +
             "WHERE id = ?";
@@ -72,16 +72,17 @@ public class EmployeeDaoImpl implements EmployeeDao {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statementInsert = connection.prepareStatement(INSERT);
             PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
-            if (employeeAlreadyExists(employee)) {
-                update(employee, statementUpdate);
-            } else {
+            if (!employeeAlreadyExists(employee)) {
                 insert(employee, statementInsert);
+            } else {
+                update(employee, statementUpdate);
             }
-            return employee;
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
+        return employee;
     }
 
     private boolean employeeAlreadyExists(Employee newEmployee) {
@@ -123,8 +124,9 @@ public class EmployeeDaoImpl implements EmployeeDao {
     @Override
     public void delete(Employee employee) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
-            PreparedStatement statement = connection.prepareStatement(INSERT);
+            PreparedStatement statement = connection.prepareStatement(DELETE);
             statement.setBigDecimal(1, new BigDecimal(employee.getId()));
+            statement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException();
