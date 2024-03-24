@@ -64,8 +64,7 @@ public class DepartmentDaoImpl implements DepartmentDao{
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statementCreate = connection.prepareStatement(INSERT);
             PreparedStatement statementUpdate = connection.prepareStatement(UPDATE);
-            boolean exists = departmentAlreadyExists(department);
-            if (exists) {
+            if (departmentAlreadyExists(department)) {
                 statementUpdate.setString(1, department.getName());
                 statementUpdate.setString(2, department.getLocation());
                 statementUpdate.setString(3, String.valueOf(department.getId()));

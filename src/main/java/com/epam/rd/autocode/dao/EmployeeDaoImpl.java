@@ -113,6 +113,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
         statementUpdate.setBigDecimal(7, employee.getSalary());
         statementUpdate.setBigDecimal(8, new BigDecimal(employee.getDepartmentId()));
         statementUpdate.setBigDecimal(9, new BigDecimal(employee.getId()));
+        statementUpdate.execute();
     }
 
 
