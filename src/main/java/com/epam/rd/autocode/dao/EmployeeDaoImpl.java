@@ -75,7 +75,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
             statement.setBigDecimal(7, employee.getSalary());
             statement.setBigDecimal(8, new BigDecimal(employee.getManagerId()));
             statement.setBigDecimal(9, new BigDecimal(employee.getDepartmentId()));
-            statement.execute();
+            ResultSet resultSet = statement.executeQuery();
             return employee;
         } catch (SQLException e) {
             e.printStackTrace();
