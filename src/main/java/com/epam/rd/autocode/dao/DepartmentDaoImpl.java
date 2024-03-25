@@ -2,8 +2,6 @@ package com.epam.rd.autocode.dao;
 
 import com.epam.rd.autocode.ConnectionSource;
 import com.epam.rd.autocode.domain.Department;
-import com.epam.rd.autocode.domain.Employee;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Connection;
@@ -23,9 +21,6 @@ public class DepartmentDaoImpl implements DepartmentDao{
     private List<Department> departments;
 
 
-    public DepartmentDaoImpl() {
-        departments = new ArrayList<>();
-    }
     @Override
     public Optional<Department> getById(BigInteger Id) {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
@@ -48,11 +43,10 @@ public class DepartmentDaoImpl implements DepartmentDao{
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statement = connection.prepareStatement(GET_ALL);
             ResultSet resultSet = statement.executeQuery();
+            departments = new ArrayList<>();
             while (resultSet.next()) {
                 Department department = mapResultSetToDepartments(resultSet);
-                if (!departmentAlreadyExists(department)) {
-                    departments.add(department);
-                }
+                departments.add(department);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -69,13 +63,13 @@ public class DepartmentDaoImpl implements DepartmentDao{
                 statementUpdate.setString(1, department.getName());
                 statementUpdate.setString(2, department.getLocation());
                 statementUpdate.setString(3, String.valueOf(department.getId()));
-                statementUpdate.executeUpdate();
+                statementUpdate.execute();
             } else {
                 PreparedStatement statementInsert = connection.prepareStatement(INSERT);
                 statementInsert.setBigDecimal(1, new BigDecimal(department.getId()));
                 statementInsert.setString(2, department.getName());
                 statementInsert.setString(3, department.getLocation());
-                statementInsert.executeUpdate();
+                statementInsert.execute();
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -29,9 +29,6 @@ public class EmployeeDaoImpl implements EmployeeDao {
     private static final String GET_BY_MANAGER = "SELECT * FROM employee WHERE manager = ?";
     List<Employee> employees;
 
-    public EmployeeDaoImpl() {
-        employees = new ArrayList<>();
-    }
     @Override
 
     public Optional<Employee> getById(BigInteger Id) {
@@ -56,6 +53,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
         try (Connection connection = ConnectionSource.instance().createConnection()) {
             PreparedStatement statement = connection.prepareStatement(GET_ALL);
             ResultSet resultSet = statement.executeQuery();
+            employees = new ArrayList<>();
             while (resultSet.next()) {
                 Employee employee = mapResultSetToEmployee(resultSet);
                 employees.add(employee);
